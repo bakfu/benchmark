@@ -7,6 +7,7 @@ import itertools
 from itertools import product
 from itertools import izip_longest  
 
+from six import string_types
 
 import yaml
 import json
@@ -61,7 +62,7 @@ def walkDict(vDict, func, caller, context, path=()):
                     walkDict( elt, func, caller, context, path+("/list/",) )                
         else:
             pass
-            
+
 def replacer(vDict,k,v,caller,context):
     vDict[k] =  context[v[1:]]
 
@@ -79,7 +80,22 @@ class Parameter(object):
     '''Returns and register an object storing a value/iterator for a given parameter.'''    
     def __init__(self, name, value):
         self.name = name
-        self.values = eval(value[1:])
+        if isinstance(value, string_types):
+            if value[0] == '!':
+                #Evaluate string
+                self.values = eval(value[1:])
+            else:
+                self.values = [value,]
+        elif isinstance(value, dict):
+            # If dict, we parse the dictionnary and evaluate its contents
+            data = value.copy()
+            walkDict(data, replacer, self, {})
+            self.values = data
+        else:
+            self.values = [value,]
+    
+    def __repr__(self):
+        return '<Parameter> {} = {}'.format(self.name, self.values)
 
 
 class BenchElement(object):
@@ -98,7 +114,7 @@ class BenchElement(object):
 
         
         baf = bakfu.Chain.load_chain(self.bench_data)
-        import pdb;pdb.set_trace()
+
         score = baf.get_chain('score')
         #print("--->score",score)
         results = dict(
@@ -128,7 +144,29 @@ class Benchmark(object):
             new_parameter = Parameter(parameter_name, parameter_value)
             self.parameters.append(new_parameter)
 
+
+
+
     def run(self):
+        task = self.bench_data['bench'].get('task','bench')
+
+        if task == 'bench':
+            self.run_bench()
+        elif task == 'optimize':
+            self.optimize()
+
+    def optimize(self):
+        '''
+        Run tests and optimize against a given set of parameters.
+        Find the best parameter set by varying within provided bounds.
+        '''
+        log.info('Starting optimization.')
+
+    def run_bench(self):
+        '''
+        Run a benchmark.
+        '''
+        log.info('Starting benchmark.')
         parameter_combinations = []
         dictList = {
                 parameter.name:parameter.values 
@@ -152,12 +190,13 @@ class Benchmark(object):
             bench_element = BenchElement(idx, data, parameter_list)
             result = bench_element.run()
             self.bench_results.append(result)
-            
+
         #write results to json file
         logger.info("Writing results to results.json file.")
         with open("results.json","w") as f:
             f.write(json.dumps(self.bench_results))
-            
+
+ 
 
 
 if __name__ == '__main__':
