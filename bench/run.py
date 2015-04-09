@@ -203,8 +203,12 @@ class Benchmark(object):
             #import IPython;IPython.embed()
             
             bench_element = BenchElement(idx, data, parameter_list)
-            result = bench_element.run()
-            return 1-result['score'][2]
+            try:
+                result = bench_element.run()
+                return 1-result['score'][2]
+            except:
+                return 1
+            
         
         def f(x):
             x=[int(v) for v in x]
