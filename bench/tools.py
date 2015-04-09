@@ -22,17 +22,29 @@ class BenchProcess(Processor):
     '''
     Run a random forest and test quality.    
     '''
+    
+    init_args = ()
+    init_kwargs = ('n_estimators',)
+    run_args = ()
+    run_kwargs = ()
+
+    
     def run(self, baf, *args, **kwargs):
         print('BENCH....')
         baf = self.chain = bakfu.Chain(lang=lang)
 
     def __init__(self, *args, **kwargs):
         super(BenchProcess, self).__init__(*args, **kwargs)
+        
+        self.n_estimators = kwargs.get('n_estimators', 50)
 
     def run(self, caller, *args, **kwargs):
         super(BenchProcess, self).run(caller, *args, **kwargs)
         baf = caller
         data_source = caller.get_chain('data_source')
+
+        
+
 
         language = baf.get('language')
 
@@ -48,8 +60,7 @@ class BenchProcess(Processor):
         labels  = baf.get_chain('targets')
         answers = data_source.get_data()
 
-
-        classifier = RandomForestClassifier(n_estimators=50)
+        classifier = RandomForestClassifier(n_estimators=self.n_estimators)
         X=baf.data['vectorizer_result']
         
         score=[0,0]        
@@ -59,7 +70,7 @@ class BenchProcess(Processor):
         if os.environ.get('BENCH_FAST','0')=='1':
             #Fast mode...
             NUM_RUNS = 5
-            SAMPLE_SIZE = 2
+            SAMPLE_SIZE = 10
 
         if len(answers)<SAMPLE_SIZE:
             SAMPLE_SIZE = len(answers)
@@ -84,8 +95,8 @@ class BenchProcess(Processor):
                     score[1]+=1
 
         result_logger.info(score)
-        R=score[0]/float(sum(score))*100
-        result_logger.info("Score :   good : \t {} ; \t bad : \t : {}  \t  ratio {}%" .format(score[0],score[1],R))
+        R=score[0]/float(sum(score))
+        result_logger.info("Score :   good : \t {} ; \t bad : \t : {}  \t  ratio {}" .format(score[0],score[1],R))
 
         self._data['score'] = (score[0],score[1],R)
 

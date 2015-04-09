@@ -1,0 +1,5 @@
+https://github.com/bakfu/bakfu.git
+functools32
+pyyaml
+six
+jsonpickle

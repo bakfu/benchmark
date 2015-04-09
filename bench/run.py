@@ -7,10 +7,16 @@ import itertools
 from itertools import product
 from itertools import izip_longest  
 
-from six import string_types
+import six
+from six import string_types, iteritems
 
 import yaml
 import json
+import jsonpickle
+
+import numpy as np
+from scipy.optimize import minimize, basinhopping
+
 
 import logging
 
@@ -20,6 +26,11 @@ log = logging.getLogger('bench')
 
 import bakfu
 import tools
+if six.PY2:
+    from functools32 import lru_cache
+else:
+    from functools import lru_cache
+    
 
 
 # Print results out to a file
@@ -31,8 +42,7 @@ logfile.setFormatter(formatter)
 result_logger.addHandler(logfile ) 
 result_logger.setLevel(logging.INFO)
 
-
-
+            
 def filterFor( path, element ):
     print(path,element)
 
@@ -161,10 +171,43 @@ class Benchmark(object):
         '''
         log.info('Starting optimization.')
         dictList = {
-                parameter.name:parameter.values 
+                parameter.name:parameter.values
                 for parameter in self.parameters}
 
+        parameter_list = {
+                parameter.name:parameter.values ['init']
+                for parameter in self.parameters}
 
+        idx=0
+        data = self.bench_data.copy()
+        data.pop('bench')
+        walkDict(data, replacer, self, parameter_list)
+        
+        variables = [(k,v) for k,v in iteritems(dictList) if v['type']==int]
+        variables_init = [v['init'] for k,v in variables]
+
+        @lru_cache(maxsize=10000)
+        def int_f(*args):
+            x=args
+            print("OPTIM : F()",x)
+            #x=[int(v) for v in x]
+            
+            parameter_list = dict([(v[0],x) for v,x in zip(variables,x)])
+            bench_element = BenchElement(idx, data, parameter_list)
+            result = bench_element.run()
+            return 1-result['score'][2]
+        
+        def f(x):
+            x=[int(v) for v in x]
+            return int_f(*x)
+        
+        x0 = np.array(variables_init,dtype=np.dtype("i"))
+        #res = minimize(f,x0)
+        res = basinhopping(f,x0, stepsize=50)
+        print(res)
+        #import IPython;IPython.embed()
+
+        
 
 
     def run_bench(self):
@@ -175,14 +218,14 @@ class Benchmark(object):
         parameter_combinations = []
 
         parameter_combinations = [
-            dict(izip_longest(self.parameters_dict, v)) 
+            dict(izip_longest(self.parameters_dict, v))
             for v in product(*self.parameters_dict.values())]
 
         for idx, parameter_list in enumerate(parameter_combinations):
             result_logger.info('\n\n')
             result_logger.info("---------------------------")
             result_logger.info("Run : ")
-            result_logger.info("---------------------------")            
+            result_logger.info("---------------------------")
             result_logger.info('Parameter list :')
             result_logger.info(parameter_list)
             data = self.bench_data.copy()
@@ -196,9 +239,9 @@ class Benchmark(object):
         #write results to json file
         log.info("Writing results to results.json file.")
         with open("results.json","w") as f:
-            f.write(json.dumps(self.bench_results))
+            f.write(jsonpickle.dumps(self.bench_results))
 
- 
+
 
 
 if __name__ == '__main__':
