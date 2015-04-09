@@ -6,6 +6,7 @@ import os
 import itertools
 from itertools import product
 from itertools import izip_longest  
+import copy
 
 import six
 from six import string_types, iteritems
@@ -179,7 +180,8 @@ class Benchmark(object):
                 for parameter in self.parameters}
 
         idx=0
-        data = self.bench_data.copy()
+
+        data = copy.deepcopy(self.bench_data)
         data.pop('bench')
         walkDict(data, replacer, self, parameter_list)
         
@@ -193,6 +195,13 @@ class Benchmark(object):
             #x=[int(v) for v in x]
             
             parameter_list = dict([(v[0],x) for v,x in zip(variables,x)])
+            
+            data = copy.deepcopy(self.bench_data)
+            data.pop('bench')
+            walkDict(data, replacer, self, parameter_list)            
+            
+            #import IPython;IPython.embed()
+            
             bench_element = BenchElement(idx, data, parameter_list)
             result = bench_element.run()
             return 1-result['score'][2]
@@ -228,7 +237,7 @@ class Benchmark(object):
             result_logger.info("---------------------------")
             result_logger.info('Parameter list :')
             result_logger.info(parameter_list)
-            data = self.bench_data.copy()
+            data = copy.deepcopy(self.bench_data)
             data.pop('bench')
             walkDict(data, replacer, self, parameter_list)
 

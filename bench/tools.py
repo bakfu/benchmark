@@ -35,7 +35,6 @@ class BenchProcess(Processor):
 
     def __init__(self, *args, **kwargs):
         super(BenchProcess, self).__init__(*args, **kwargs)
-        
         self.n_estimators = kwargs.get('n_estimators', 50)
 
     def run(self, caller, *args, **kwargs):
@@ -60,6 +59,7 @@ class BenchProcess(Processor):
         labels  = baf.get_chain('targets')
         answers = data_source.get_data()
 
+        print("N_estimators",self.n_estimators)
         classifier = RandomForestClassifier(n_estimators=self.n_estimators)
         X=baf.data['vectorizer_result']
         
