@@ -164,10 +164,7 @@ class Benchmark(object):
                 parameter.name:parameter.values 
                 for parameter in self.parameters}
 
-        print(self.parameters_dict)
 
-        
-        import IPython;IPython.embed()
 
 
     def run_bench(self):
