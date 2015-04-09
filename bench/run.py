@@ -110,9 +110,7 @@ class BenchElement(object):
     def run(self):
         log.info('Running : {name}'.format(name=self.name))
         log.info('  parameters: {}'.format(self.parameters))
-        
 
-        
         baf = bakfu.Chain.load_chain(self.bench_data)
 
         score = baf.get_chain('score')
@@ -134,21 +132,22 @@ class Benchmark(object):
         self.parameters = []
         self.bench_results = []
         parameters_data = self.bench_data['bench']['parameters'].items()
-        
-        result_logger.info('Starting benchmark ')
+
+        result_logger.info('Starting benchmark.')
         result_logger.info('name :  {}'.format(self.bench_data['bench']['name']))
 
 
         for parameter_name, parameter_value in parameters_data:
-  
             new_parameter = Parameter(parameter_name, parameter_value)
             self.parameters.append(new_parameter)
 
-
-
-
     def run(self):
         task = self.bench_data['bench'].get('task','bench')
+
+        self.parameters_dict = {
+                parameter.name:parameter.values 
+                for parameter in self.parameters
+                }
 
         if task == 'bench':
             self.run_bench()
@@ -161,6 +160,15 @@ class Benchmark(object):
         Find the best parameter set by varying within provided bounds.
         '''
         log.info('Starting optimization.')
+        dictList = {
+                parameter.name:parameter.values 
+                for parameter in self.parameters}
+
+        print(self.parameters_dict)
+
+        
+        import IPython;IPython.embed()
+
 
     def run_bench(self):
         '''
@@ -168,13 +176,10 @@ class Benchmark(object):
         '''
         log.info('Starting benchmark.')
         parameter_combinations = []
-        dictList = {
-                parameter.name:parameter.values 
-                for parameter in self.parameters}
 
         parameter_combinations = [
-            dict(izip_longest(dictList, v)) 
-            for v in product(*dictList.values())]
+            dict(izip_longest(self.parameters_dict, v)) 
+            for v in product(*self.parameters_dict.values())]
 
         for idx, parameter_list in enumerate(parameter_combinations):
             result_logger.info('\n\n')
@@ -192,7 +197,7 @@ class Benchmark(object):
             self.bench_results.append(result)
 
         #write results to json file
-        logger.info("Writing results to results.json file.")
+        log.info("Writing results to results.json file.")
         with open("results.json","w") as f:
             f.write(json.dumps(self.bench_results))
 

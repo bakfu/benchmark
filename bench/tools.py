@@ -1,4 +1,4 @@
-
+import os
 import random
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
@@ -56,7 +56,7 @@ class BenchProcess(Processor):
         NUM_RUNS = 50
         SAMPLE_SIZE = 50
 
-        if os.environ('BENCH_FAST','0')=='1':
+        if os.environ.get('BENCH_FAST','0')=='1':
             #Fast mode...
             NUM_RUNS = 5
             SAMPLE_SIZE = 2
