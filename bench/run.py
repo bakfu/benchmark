@@ -122,10 +122,10 @@ class BenchElement(object):
         log.info('Running : {name}'.format(name=self.name))
         log.info('  parameters: {}'.format(self.parameters))
 
-        baf = bakfu.Chain.load_chain(self.bench_data)
+        self.baf = bakfu.Chain.load_chain(self.bench_data)
 
-        score = baf.get_chain('score')
-        #print("--->score",score)
+        score = self.baf.get_chain('score')
+
         results = dict(
             name=self.name,
             bench_data=self.bench_data,
@@ -191,8 +191,6 @@ class Benchmark(object):
         @lru_cache(maxsize=10000)
         def int_f(*args):
             x=args
-            print("OPTIM : F()",x)
-            #x=[int(v) for v in x]
             
             parameter_list = dict([(v[0],x) for v,x in zip(variables,x)])
             
@@ -202,9 +200,12 @@ class Benchmark(object):
             
             #import IPython;IPython.embed()
             
+            result_logger.info('\nRun :\n---------------------')
+            result_logger.info(parameter_list)
             bench_element = BenchElement(idx, data, parameter_list)
             try:
                 result = bench_element.run()
+                result_logger.info('Score : {}/{}/{}'.format(*result['score']))
                 return 1-result['score'][2]
             except:
                 return 1
