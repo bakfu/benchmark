@@ -14,6 +14,9 @@ from six import string_types, iteritems
 import yaml
 import json
 import jsonpickle
+jsonpickle.set_encoder_options('simplejson', sort_keys=True, indent=4)
+
+
 
 import numpy as np
 from scipy.optimize import minimize, basinhopping
