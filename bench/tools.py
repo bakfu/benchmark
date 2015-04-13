@@ -10,12 +10,9 @@ from bakfu.core.classes import Processor
 
 
 import logging
-logger = logging.getLogger('bench')
+log = logger = logging.getLogger('bench')
 
 result_logger = logging.getLogger('bench_results')
-
-
-logger = logging.getLogger('bench')
 
 @register('bench.ml1')
 class BenchProcess(Processor):   
@@ -28,7 +25,7 @@ class BenchProcess(Processor):
     run_args = ()
     run_kwargs = ()
 
-    
+
     def run(self, baf, *args, **kwargs):
         print('BENCH....')
         baf = self.chain = bakfu.Chain(lang=lang)
@@ -42,7 +39,7 @@ class BenchProcess(Processor):
         baf = caller
         data_source = caller.get_chain('data_source')
 
-        
+
 
 
         language = baf.get('language')
@@ -59,23 +56,21 @@ class BenchProcess(Processor):
         labels  = baf.get_chain('targets')
         answers = data_source.get_data()
 
-        print("N_estimators",self.n_estimators)
         classifier = RandomForestClassifier(n_estimators=self.n_estimators)
         X=baf.data['vectorizer_result']
-        
-        score=[0,0]        
+
+        score=[0,0]
         NUM_RUNS = 50
         SAMPLE_SIZE = 50
 
         if os.environ.get('BENCH_FAST','0')=='1':
             #Fast mode...
-            NUM_RUNS = 5
-            SAMPLE_SIZE = 10
+            NUM_RUNS = 2
+            SAMPLE_SIZE = 5
 
         if len(answers)<SAMPLE_SIZE:
             SAMPLE_SIZE = len(answers)
-        
-        
+
         for run in range(NUM_RUNS):
             print("run {}".format(run))
             for i in range(SAMPLE_SIZE):
@@ -100,5 +95,4 @@ class BenchProcess(Processor):
 
         self._data['score'] = (score[0],score[1],R)
 
-        
         return self

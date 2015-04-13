@@ -57,9 +57,16 @@ def walkDict(vDict, func, caller, context, path=()):
       !: evaluates the expression
           ex : !range(1,4)
     '''
-    for k,v in vDict.items():
+    for k,v in iteritems(vDict):
+        # key has type '%var_name'
+        if isinstance(k,str):
+            if k[0]=='%':
+                old_k = k
+                k = context[k[1:]]
+                vDict.pop(old_k)
+                vDict[k] = v
         if type(vDict[k]) == dict:
-            walkDict( vDict[k], func, caller, context, path+(k,) )
+            walkDict( vDict[k], func, caller, context, path+(k,) )    
         elif isinstance(v,str):
             if len(v)>0 and v[0]=='%':
                 #func(vDict,k,v, caller, context)
@@ -197,9 +204,7 @@ class Benchmark(object):
             data = copy.deepcopy(self.bench_data)
             data.pop('bench')
             walkDict(data, replacer, self, parameter_list)            
-            
-            #import IPython;IPython.embed()
-            
+           
             result_logger.info('\nRun :\n---------------------')
             result_logger.info(parameter_list)
             bench_element = BenchElement(idx, data, parameter_list)
@@ -219,9 +224,6 @@ class Benchmark(object):
         #res = minimize(f,x0)
         res = basinhopping(f,x0, stepsize=50)
         print(res)
-        #import IPython;IPython.embed()
-
-        
 
 
     def run_bench(self):
@@ -234,6 +236,8 @@ class Benchmark(object):
         parameter_combinations = [
             dict(izip_longest(self.parameters_dict, v))
             for v in product(*self.parameters_dict.values())]
+        
+
 
         for idx, parameter_list in enumerate(parameter_combinations):
             result_logger.info('\n\n')
