@@ -78,8 +78,12 @@ def walkDict(vDict, func, caller, context, path=()):
                 #func(vDict,k,v, caller, context)
                 vDict[k] =  eval(v[1:])
         elif isinstance(v,list):
-            for elt in v:
-                if type(elt) == dict:
+            for idx, elt in enumerate(v):
+                if isinstance(elt,string_types):
+                   if elt[0] == "%":
+                       v[idx] = copy.deepcopy(context[elt[1:]])
+                       walkDict( v[idx], func, caller, context, path+(k,) )    
+                elif type(elt) == dict:
                     walkDict( elt, func, caller, context, path+("/list/",) )                
         else:
             pass
@@ -109,7 +113,7 @@ class Parameter(object):
                 self.values = [value,]
         elif isinstance(value, dict):
             # If dict, we parse the dictionnary and evaluate its contents
-            data = value.copy()
+            data = copy.deepcopy(value)
             walkDict(data, replacer, self, {})
             self.values = data
         elif isinstance(value, list):
@@ -124,6 +128,8 @@ class Parameter(object):
 class BenchElement(object):
     ''' 
     A run for given set of parameters.
+    
+    TODO : detect if parameter combination is equivalent to a previous one.
     '''
     def __init__(self, name, bench_data, parameters):
         self.name = name
@@ -163,6 +169,7 @@ class Benchmark(object):
         for parameter_name, parameter_value in parameters_data:
             new_parameter = Parameter(parameter_name, parameter_value)
             self.parameters.append(new_parameter)
+
 
     def run(self):
         task = self.bench_data['bench'].get('task','bench')
