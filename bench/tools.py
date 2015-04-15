@@ -58,7 +58,7 @@ class BenchProcess(Processor):
 
 
         #classifier = RandomForestClassifier(n_estimators=self.n_estimators)
-        baf.get_chain("classifier")
+        classifier = baf.get_chain("classifier")
 
         X=baf.data['vectorizer_result']
 

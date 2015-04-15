@@ -112,6 +112,8 @@ class Parameter(object):
             data = value.copy()
             walkDict(data, replacer, self, {})
             self.values = data
+        elif isinstance(value, list):
+            self.values = value
         else:
             self.values = [value,]
     
