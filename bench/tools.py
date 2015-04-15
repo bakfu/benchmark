@@ -56,7 +56,10 @@ class BenchProcess(Processor):
         labels  = baf.get_chain('targets')
         answers = data_source.get_data()
 
-        classifier = RandomForestClassifier(n_estimators=self.n_estimators)
+
+        #classifier = RandomForestClassifier(n_estimators=self.n_estimators)
+        baf.get_chain("classifier")
+
         X=baf.data['vectorizer_result']
 
         score=[0,0]
