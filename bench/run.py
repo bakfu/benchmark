@@ -17,10 +17,9 @@ import jsonpickle
 jsonpickle.set_encoder_options('simplejson', sort_keys=True, indent=4)
 
 
-
 import numpy as np
 from scipy.optimize import minimize, basinhopping
-
+import deepdiff
 
 import logging
 
@@ -249,22 +248,40 @@ class Benchmark(object):
             dict(izip_longest(self.parameters_dict, v))
             for v in product(*self.parameters_dict.values())]
         
-
+        previous_data = []
 
         for idx, parameter_list in enumerate(parameter_combinations):
-            result_logger.info('\n\n')
+            result_logger.info("\n\n")
             result_logger.info("---------------------------")
             result_logger.info("Run : ")
             result_logger.info("---------------------------")
+            result_logger.info('\n\n')
             result_logger.info('Parameter list :')
-            result_logger.info(parameter_list)
+            
+            
             data = copy.deepcopy(self.bench_data)
             data.pop('bench')
             walkDict(data, replacer, self, parameter_list)
 
-            bench_element = BenchElement(idx, data, parameter_list)
-            result = bench_element.run()
-            self.bench_results.append(result)
+            
+            #Check if this run is a duplicate
+            duplicate = False
+
+            for prev_data in previous_data:
+                diff = deepdiff.DeepDiff(data,prev_data)
+                if diff.changes == {}:
+                    duplicate = True
+                    result_logger.info("duplicate ... skipping ...")
+                    break
+            
+            if not duplicate:
+                result_logger.info(parameter_list)              
+                
+                previous_data.append(data)
+
+                bench_element = BenchElement(idx, data, parameter_list)
+                result = bench_element.run()
+                self.bench_results.append(result)
 
         #write results to json file
         log.info("Writing results to results.json file.")

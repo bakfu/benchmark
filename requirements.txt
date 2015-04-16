@@ -3,3 +3,4 @@ functools32
 pyyaml
 six
 jsonpickle
+deepdiff
