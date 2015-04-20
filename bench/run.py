@@ -7,6 +7,7 @@ import itertools
 from itertools import product
 from itertools import izip_longest  
 import copy
+from glob import glob
 
 import six
 from six import string_types, iteritems
@@ -108,6 +109,10 @@ class Parameter(object):
             if value[0] == '!':
                 #Evaluate string
                 self.values = eval(value[1:])
+            elif value[0] == '#':
+                #bash eval
+                #TODO: implement
+                pass
             else:
                 self.values = [value,]
         elif isinstance(value, dict):
