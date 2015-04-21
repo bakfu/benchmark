@@ -15,7 +15,7 @@ from six import string_types, iteritems
 import yaml
 import json
 import jsonpickle
-jsonpickle.set_encoder_options('simplejson', sort_keys=True, indent=4)
+jsonpickle.set_encoder_options('json', sort_keys=True, indent=4)
 
 
 import numpy as np
@@ -262,13 +262,13 @@ class Benchmark(object):
             result_logger.info("---------------------------")
             result_logger.info('\n\n')
             result_logger.info('Parameter list :')
-            
-            
+
+
             data = copy.deepcopy(self.bench_data)
             data.pop('bench')
             walkDict(data, replacer, self, parameter_list)
 
-            
+
             #Check if this run is a duplicate
             duplicate = False
 
@@ -278,10 +278,10 @@ class Benchmark(object):
                     duplicate = True
                     result_logger.info("duplicate ... skipping ...")
                     break
-            
+
             if not duplicate:
                 result_logger.info(parameter_list)              
-                
+
                 previous_data.append(data)
 
                 bench_element = BenchElement(idx, data, parameter_list)
@@ -292,6 +292,8 @@ class Benchmark(object):
         log.info("Writing results to results.json file.")
         with open("results.json","w") as f:
             f.write(jsonpickle.dumps(self.bench_results))
+        
+        return self.bench_results
 
 
 
